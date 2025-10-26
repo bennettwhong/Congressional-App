@@ -4,7 +4,7 @@ import SwiftUI
 struct VoiceTranscriberApp: App {
     var body: some Scene {
         WindowGroup {
-            RecordView()
+            ContentView()
         }
     }
 }
