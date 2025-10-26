@@ -5,7 +5,7 @@ from werkzeug.utils import secure_filename
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)  # <-- This line enables CORS for all routes and all origins
+CORS(app)  # Enables CORS for all domains on all routes
 
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -13,7 +13,7 @@ ALLOWED_EXTENSIONS = {'wav', 'mp3', 'm4a'}
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Set OpenAI API key from environment variable
+# Load the OpenAI API key from environment variable
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def allowed_file(filename):
@@ -40,19 +40,19 @@ def upload_audio():
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     try:
         file.save(filepath)
-
+        print("Saved file:", filepath)
         with open(filepath, 'rb') as audio_file:
+            print("Transcribing with Whisper…")
             response = openai.Audio.transcriptions.create(
                 model="whisper-1",
                 file=audio_file
             )
-
-        transcription_text = response.get("text", "")
-        return jsonify({"transcription": transcription_text})
-
+            print("OpenAI response:", response)
+            transcription_text = response.get("text", "")
+            return jsonify({"transcription": transcription_text})
     except Exception as e:
+        print("Error during transcription:", str(e))
         return jsonify({"error": str(e)}), 500
-
     finally:
         if os.path.exists(filepath):
             os.remove(filepath)  # clean up uploaded file
