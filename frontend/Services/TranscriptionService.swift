@@ -2,7 +2,7 @@ import Foundation
 
 class TranscriptionService {
     func uploadAudio(fileURL: URL, completion: @escaping (String?) -> Void) {
-        guard let url = URL(string: "http://127.0.0.1:5000/upload") else {
+        guard let url = URL(string: "http://127.0.0.1:5002/upload") else {
             print("Invalid backend URL")
             completion(nil)
             return
