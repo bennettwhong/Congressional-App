@@ -12,7 +12,6 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 ALLOWED_EXTENSIONS = {'wav', 'mp3', 'm4a'}
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-# Initialize OpenAI client (supports api key from environment)
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def allowed_file(filename):
@@ -44,9 +43,27 @@ def upload_audio():
                 file=audio_file
             )
             print("OpenAI response:", response)
-            # Extract transcription text from the response object
             transcription_text = response.text
-            return jsonify(transcription=transcription_text)
+
+        # Add GPT feedback
+        prompt = (
+            "You are a speech clarity assistant. Given the following transcript, "
+            "provide 2-4 specific, actionable tips to speak clearer, focusing on pronunciation, pacing, and enunciation. Output only bullet points.\n\n"
+            f"Transcript: \"{transcription_text}\""
+        )
+        feedback_response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "You are a helpful speech therapist."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        feedback_text = feedback_response.choices[0].message.content
+
+        return jsonify(
+            transcription=transcription_text,
+            feedback=feedback_text
+        )
     except Exception as e:
         print("Error during transcription:", str(e))
         return jsonify(error=str(e)), 500
